@@ -4,17 +4,21 @@ import (
 	"errors"
 	"os/exec"
 	"strings"
+
+	//3p
+	"github.com/axgle/mahonia"
 )
 
 func getNetworkInfo() (networkInfo map[string]interface{}, err error) {
 	networkInfo = make(map[string]interface{})
 
+	exec.Command("chcp", "437").CombinedOutput()
 	out, err := exec.Command("ipconfig", "-all").CombinedOutput()
 	if err != nil {
 		return
 	}
 
-	networkInfo, err = parseIpConfig(string(out))
+	networkInfo, err = parseIpConfig(string(mahonia.NewDecoder("gb18030").ConvertString(string(out))))
 	return
 }
 
@@ -36,7 +40,7 @@ func parseIpConfig(out string) (networkInfo map[string]interface{}, err error) {
 		if strings.Contains(line, "IPv4") {
 			ip = line
 			gottablock = true
-		} else if strings.Contains(line, "Physical Address") && mac == "" {
+		} else if (strings.Contains(line, "Physical Address") && mac == "") || strings.Contains(line, "物理地址") {
 			mac = line
 		} else if strings.Contains(line, "IPv6") && ipv6 == "" {
 			ipv6 = line
